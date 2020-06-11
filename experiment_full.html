@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Anxiety Exploration</title>
+        <script src="jspsych-6.0.5/jspsych.js"></script>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-clickoutcome-html.js"></script>
+        <script src="jspsych-6.0.5/plugins/jspsych-html-keyboard-response.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-instructions.js"></script>
+        <script src="jspsych-6.0.5/plugins/generate_trial_sequence.js"></script>
+        <script src="jspsych-6.0.5/plugins/jspsych-survey-likert.js"></script>
+        <script src="jspsych-6.0.5/plugins/jspsych-survey-text.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-fullscreen.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-external-html.js"></script>
+
+
+        <!-- <script src="plugins/text-position.js"></script>
+        <script src="plugins/image-position.js"></script>
+        <script src="plugins/multiple-image.js"></script>
+        <script src="plugins/multiple-image-click.js"></script>
+        <script src="plugins/image-click.js"></script>
+        <script src="plugins/click-outcome.js"></script>
+        <script src="plugins/multiple-image-timer.js"></script> -->
+
+        // /* LOAD CUSTOM SCRIPTS*/
+        <script src="custom/shuffle.js"></script>
+        <script src="custom/jspsych-html.js"></script>
+        <script src="utilities/jspsych-html-button-consent.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-html.js"></script>
+
+        <script src="jspsych-6.0.5/plugins/jspsych-html-button-response.js"></script>
+
+
+        // /* EXPERIMENT SCRIPTS*/
+        <script src="custom/task_main5.js"></script>
+        <script src="custom/gensequences.js"></script>
+        <script src="custom/genstim.js"></script>
+
+
+        <link href="stylesheet.css" rel="stylesheet" type="text/css"></link>
+
+        <!-- <link href="jspsych-6.0.5/css/jspsych.css" rel="stylesheet" type="text/css"></link> -->
+
+
+    </head>
+    <body></body>
+    <script>
+
+    //CODE THAT CHECKS IF THE BROWSER IS CHROME OR FIREFOX MOZ
+    function getBrowserInfo()
+    {
+            var ua = navigator.userAgent, tem,
+            M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+            if(/trident/i.test(M[1]))
+            {
+                    tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+                    return 'IE '+(tem[1] || '');
+            }
+            if(M[1]=== 'Chrome')
+            {
+                    tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+                    if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+            }
+            M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+            if((tem= ua.match(/version\/(\d+)/i))!= null)
+                    M.splice(1, 1, tem[1]);
+            return { 'browser': M[0], 'version': M[1] };
+    }
+
+    var browserInfo = getBrowserInfo();
+
+    console.log(browserInfo)
+
+    if(browserInfo.browser !== 'Chrome' && browserInfo !== 'Firefox 77'  && browserInfo !== 'Opera 68')
+    {
+            var wrong_browser =
+            {
+                    type: 'html-keyboard-response',
+                    stimulus: '<p>This experiment only has support for Google Chrome or Mozilla Firefox.</p>'
+                             +'<p>Please reopen the experiment in one of these browsers.</p>',
+            };
+            jsPsych.init({
+                    timeline: [wrong_browser],
+            });
+    } else {
+
+
+      //CODE TO SAVE FULLDATA AT THE END
+      function save_data(alldata){
+        var data_table = "mydatabase"; // change this for different experiments
+        $.ajax({
+            type:'post',
+            cache: false,
+            url: 'savedata.php',
+            data: {
+               table: data_table,
+               json: JSON.stringify(alldata)
+            },
+           success: function(output) { console.log(output); } // write the result to javascript console
+         });
+      };
+
+      //CODE TO SAVE DATA PER TRIAL
+      function save_data_pt(alldata){
+        var data_table = "mydatabase_trialdata"; // change this for different experiments
+        $.ajax({
+            type:'post',
+            cache: false,
+            url: 'savedata.php',
+            data: {
+               table: data_table,
+               json: JSON.stringify(alldata)
+            },
+           success: function(output) { console.log(output); } // write the result to javascript console
+         });
+      }		;
+
+
+  ////////////////////////////////
+  //START OF EXPERIMENT PLUGINS//
+  ///////////////////////////////
+
+  //EXPERIMENT PARAMETERS
+      var practice  = 1;
+      var numPrac   = 26;
+      var numBlocks = 4;
+      var numTrials = 30;
+      var subject_id = Math.floor(Math.random()*9000000) + 1000000;
+
+
+      var check_consent = function(elem) {
+        if (document.getElementById('consent_checkbox').checked) {
+          return true;
+        }
+        else {
+          alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+          return false;
+        }
+        return false;
+      };
+
+    //   // declare the block.
+    // var consentpg = {
+    //   type:'external-html',
+    //   url: "checkbox.html",
+    //   cont_btn: "start",
+    //   check_fn: check_consent
+    // };
+
+
+  //FULL SCREEN PLUGIN
+  var fullscreen_text = {
+      type: 'fullscreen',
+      message: '<p>To take part in the experiment, your browser must be in fullscreen mode. Exiting fullscreen mode will pause the experiment. <br></br>Please click the button below to enable fullscreen mode and continue.</p>',
+      buttontext: "Fullscreen",
+      data: {trialType: 'fullscreen', label: 'fullscreen_check'},
+    };
+
+  //WELCOME SCREEN PLUGIN
+    var welcome_block = {
+        type: 'html-keyboard-response',
+        stimulus: ['<p style = "text-align: center; font-size: 28px"><br></br>Hello and welcome to the experiment!</p>' +
+        '<p style = "text-align: center; font-size: 28px">Press spacebar to continue.</p>'],
+        data: {label: 'welcome', trialType: 'instructions'},
+        cont_key: 32
+      };
+
+  //INFO PAGE PLUGIN
+    // var infopg = {
+    //     type: 'html-keyboard-response',
+    //     stimulus: ['<p style = "text-align: center; font-size: 28px"><br></br>Hello and welcome to the experiment!</p>' +
+    //     '<p style = "text-align: center; font-size: 28px">Press spacebar to continue.</p>'],
+    //     data: {label: 'welcome', trialType: 'instructions'},
+    //     cont_key: 32
+    //   };
+
+
+
+  // //CONSENT PAGE PLUGIN
+  //   var consentpg = {
+  //       type: 'html-button-consent',
+  //       stimulus: '<p>Running</p>',
+  //       choices: ['Healthy', 'Unhealthy'],
+  //       prompt: "<p>Is this activity healthy or unhealthy?</p>",
+  //       response_ends_trial: true,
+  //       data: {trialType: 'consent', label: 'consent_check'}
+  //     };
+
+    //ENTER SUBJECT DETAILS PLUGIN
+     var subdetails = {
+         type: 'survey-text',
+         preamble: ['<p style = "text-align: center; font-size: 28px">Please enter the following:</p>'],
+         questions: [
+         {prompt: "Subject ID?", rows: 3, columns: 40},
+         {prompt: "Session? [1 or 2]", rows: 3, columns: 50}
+          ],
+          data: {trialType: 'subject', label: 'subjdet1'}
+        };
+
+      var subdetails2 = {
+          type: 'survey-text',
+          preamble: ['<p style = "text-align: center; font-size: 28px">Please enter the following:</p>'],
+          questions: [
+          {prompt: "Subject ID?", rows: 3, columns: 40},
+          {prompt: "Gender", rows: 3, columns: 40},
+          {prompt: "Age", rows: 3, columns: 50}
+            ],
+            data: {trialType: 'subject', label: 'subjdet2'}
+        };
+
+   //CALLS EXPERIMENT TASK (IN ANOTHER JS SCRIPT)
+     var experiment_full = task_main5(practice,numPrac,numBlocks,numTrials);
+
+     //END SCREEN AND SAVE FULL DATA PLUGIN
+
+
+     var end_screen1 =
+     {
+     type: 'html-keyboard-response',
+     stimulus: ['<p style = "text-align: center; font-size: 28px">You have reached the end of the experiment<br></br>Continue on to the debrief before exiting.</p>'],
+     data: {trialType: 'exit', label: 'end_fullscreen'},
+     cont_key: 32
+    }
+
+     		var end_screen2 =
+     		{
+     		type: 'html-keyboard-response',
+     		stimulus: ['<p style = "text-align: center; font-size: 28px">Thank you for participating!<br></br>Press the spacebar to end the experiment and submit your task data.</p>'],
+     		data: {trialType: 'exit', label: 'end_fullscreen'},
+     		cont_key: 32,
+     		on_finish: function() {
+
+
+     		jsPsych.data.addProperties({
+
+
+     		stimulus: [],
+     		subject_id : subject_id
+
+     		});
+
+     		}
+      } // end of end screen function
+
+      var debrief = {
+        type: 'html-keyboard-response',
+        stimulus: ['<p style = "text-align: center; font-size: 28px">In this task, we were interested to know how people make decisions under conditions of uncertainty.</p>' +
+        '<p style = "text-align: center; font-size: 28px">We wanted to see how uncertainty about whether environments are good or bad affects peoples decision to explore or avoid the environments. ' +
+        'We are interested in this, as it may be important for people with anxiety and other mental health conditions.</p>' +
+        '<p style = "text-align: center; font-size: 28px">In particular, we were interested to see whether the distribution of outcomes impacts on these decisions. ' +
+        'If you experience a few bad outcomes at the beginning of an environment, are you more likely to perceive that environment to be bad, even if overall it is not.</p>' +
+        '<p style = "text-align: center; font-size: 28px">Therefore, we selected the outcomes to be displayed at specific time points. ' +
+        'For example, sometimes there were lots of badgers at the beginning of an environment and less at the end. ' +
+        'We did not tell you about this explicitly in the experiment instructions, as we were interested in peoples natural responses and did not want to bias our data towards or away from this point of interest.  </p>' +
+        '<p style = "text-align: center; font-size: 28px">We hope that you enjoyed the experiment and if you have any questions, please contact Alexandra.hopkins.14@ucl.ac.uk.   </p>'
+
+        ],
+        data: {trialType: 'debrief', label: 'debrief'},
+
+      } // end of debrief form
+
+      // var info = infopg();
+
+    //PUSH TIMELINE FOR THE ENTIRE EXPERIMENT
+          var taskspre = [];
+          var taskspost = [];
+
+          taskspre.push(fullscreen_text);
+          taskspre.push(welcome_block);
+          // tasks.push(welcome_block);
+
+          // tasks.push(consentpg);
+          // tasks.push(subdetails)
+          taskspre.push(subdetails2)
+
+
+          taskspost.push(end_screen1)
+          taskspost.push(debrief)
+          taskspost.push(end_screen2)
+
+          var timeline_full = [].concat(taskspre, experiment_full, taskspost);
+
+
+          // tasks.push(experiment_full);
+
+      //EXECUTE RUN FOR THE EXPERIMENT
+      		jsPsych.init({
+      		    // timeline: experiment_full,
+              // timeline: tasks,
+              timeline: timeline_full,
+      		    show_progress_bar: false,
+      		    on_trial_finish: function() {
+                  jsPsych.data.addProperties({
+                    subject_id : subject_id
+                  });
+      		},
+
+      		// on_finish: function() {jsPsych.data.get().localSave('csv','mydata.csv');
+      		// document.write('<p><br></br><br></br><center>Thank you for participating! <br></br> Your data code is <strong>'+subject_id+'</strong>.<br> Please wait for the experimenter.</center><p>')
+      		// }
+          on_finish: function() {
+              jsPsych.data.displayData();
+            }
+        }); // end of jsPsych init
+
+    } //end of browser check
+
+
+
+
+    </script>
+</html>
